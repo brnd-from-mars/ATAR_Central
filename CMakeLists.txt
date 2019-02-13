@@ -12,6 +12,8 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(FILE main.cpp)
 
+list(APPEND COMPONENTS mcu)
+
 
 #===============================================================================
 # device
@@ -20,13 +22,13 @@ set(FILE main.cpp)
 set(DEVICE atmega2560)
 set(FREQ 16000000)
 set(PROGRAMMER wiring)
-if (APPLE)
+if(APPLE)
     set(PORT /dev/cu.usbmodem14101)
-elseif (WIN32)
+elseif(WIN32)
     set(PORT COM7)
-else ()
+else()
     message(WARNING "PORT not set for current operating system")
-endif ()
+endif()
 set(BAUD 115200)
 
 
@@ -58,7 +60,7 @@ if (APPLE)
     set(AVROBJCOPY avr-objcopy)
     set(AVRSIZE avr-size)
     set(AVRDUDE avrdude)
-elseif (WIN32)
+elseif(WIN32)
     set(AVRBIN C://AVR/bin)
     set(AVROBJCOPY avr-objcopy.exe)
     set(AVRSIZE avr-size.exe)
@@ -98,9 +100,9 @@ else()
 endif()
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
-if (APPLE)
+if(APPLE)
     include_directories(/usr/local/CrossPack-AVR/include)
-elseif (WIN32)
+elseif(WIN32)
     include_directories(C://AVR/avr/include)
 else()
     message(WARNING "AVR include directories not set for current operating system")
@@ -113,7 +115,9 @@ endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${FILE})
 
-add_subdirectory(mcu)
+foreach(DIR ${COMPONENTS})
+    add_subdirectory(${DIR})
+endforeach()
 
 
 #===============================================================================
@@ -129,5 +133,5 @@ endif(EEPROM)
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRSIZE} --target=ihex ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex)
 
 if(FLASH)
-    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRDUDE} -p${DEVICE} -c${PROGRAMMER} -P${PORT} -b${BAUD} -D -U flash:w:"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex:i")
+    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRDUDE} -p${DEVICE} -c${PROGRAMMER} -P${PORT} -b${BAUD} -D -U flash:w:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex:i)
 endif(FLASH)
