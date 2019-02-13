@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(ATAR_Central)
 
+add_subdirectory(cmake-util)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
@@ -19,7 +20,13 @@ set(FILE main.cpp)
 set(DEVICE atmega2560)
 set(FREQ 16000000)
 set(PROGRAMMER wiring)
-set(PORT /dev/cu.usbmodem14101)
+if (APPLE)
+    set(PORT /dev/cu.usbmodem14101)
+elseif (WIN32)
+    set(PORT COM7)
+else ()
+    message(WARNING "PORT not set for current operating system")
+endif ()
 set(BAUD 115200)
 
 
@@ -48,21 +55,32 @@ set(FLASH YES)
 
 if (APPLE)
     set(AVRBIN /usr/local/CrossPack-AVR/bin)
+    set(AVROBJCOPY avr-objcopy)
+    set(AVRSIZE avr-size)
+    set(AVRDUDE avrdude)
+elseif (WIN32)
+    set(AVRBIN C://AVR/bin)
+    set(AVROBJCOPY avr-objcopy.exe)
+    set(AVRSIZE avr-size.exe)
+    set(AVRDUDE avrdude.exe)
 else()
     message(WARNING "AVRBIN not set for current operating system")
 endif()
-set(AVROBJCOPY avr-objcopy)
-set(AVRSIZE avr-size)
-set(AVRDUDE avrdude)
-
 
 
 #===============================================================================
 # avr compilation
 #===============================================================================
 
-set(CMAKE_C_COMPILER ${AVRBIN}/avr-gcc)
-set(CMAKE_CXX_COMPILER ${AVRBIN}/avr-g++)
+if (APPLE)
+    set(CMAKE_C_COMPILER ${AVRBIN}/avr-gcc)
+    set(CMAKE_CXX_COMPILER ${AVRBIN}/avr-g++)
+elseif (WIN32)
+    set(CMAKE_C_COMPILER ${AVRBIN}/avr-gcc.exe)
+    set(CMAKE_CXX_COMPILER ${AVRBIN}/avr-g++.exe)
+else()
+    message(WARNING "COMPILER not set for current operating system")
+endif()
 
 set(CMAKE_C_FLAGS  "-Os -mmcu=${DEVICE} -DF_CPU=${FREQ}UL -std=gnu99 -Wl,--gc-sections")
 set(CMAKE_CXX_FLAGS "-Os -mmcu=${DEVICE} -DF_CPU=${FREQ}UL -Wl,--gc-sections")
@@ -73,6 +91,8 @@ unset(CMAKE_CXX_LINK_FLAGS)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 if (APPLE)
     set(CMAKE_PREFIX_PATH /usr/local/CrossPack-AVR/)
+elseif (WIN32)
+    set(CMAKE_PREFIX_PATH C://AVR/avr/)
 else()
     message(WARNING "CMAKE_PREFIX_PATH not set for current operating system")
 endif()
@@ -80,6 +100,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 
 if (APPLE)
     include_directories(/usr/local/CrossPack-AVR/include)
+elseif (WIN32)
+    include_directories(C://AVR/avr/include)
 else()
     message(WARNING "AVR include directories not set for current operating system")
 endif()
@@ -107,5 +129,5 @@ endif(EEPROM)
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRSIZE} --target=ihex ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex)
 
 if(FLASH)
-    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRDUDE} -p${DEVICE} -c${PROGRAMMER} -P${PORT} -b${BAUD} -D -U flash:w:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex)
+    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${AVRBIN}/${AVRDUDE} -p${DEVICE} -c${PROGRAMMER} -P${PORT} -b${BAUD} -D -U flash:w:"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_PROJECT_NAME}.hex:i")
 endif(FLASH)
