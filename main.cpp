@@ -6,7 +6,6 @@
 
 int main ()
 {
-    DDRB |= (1 << PB7);
     DigitalOutputPin dop(&PORTB, PB7);
 
 
@@ -15,9 +14,9 @@ int main ()
     while (true)
     {
         dop.Enable();
-        _delay_ms(50);
+        _delay_ms(1000);
         dop.Disable();
-        _delay_ms(100);
+        _delay_ms(1000);
     }
 #pragma clang diagnostic pop
 
