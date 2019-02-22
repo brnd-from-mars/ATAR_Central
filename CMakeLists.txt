@@ -85,7 +85,7 @@ else()
 endif()
 
 set(CMAKE_C_FLAGS  "-Os -mmcu=${DEVICE} -DF_CPU=${FREQ}UL -std=gnu99 -Wl,--gc-sections")
-set(CMAKE_CXX_FLAGS "-Os -mmcu=${DEVICE} -DF_CPU=${FREQ}UL -Wl,--gc-sections")
+set(CMAKE_CXX_FLAGS "-Os -mmcu=${DEVICE} -DF_CPU=${FREQ}UL -std=c++1y -Wl,--gc-sections")
 
 unset(CMAKE_C_LINK_FLAGS)
 unset(CMAKE_CXX_LINK_FLAGS)

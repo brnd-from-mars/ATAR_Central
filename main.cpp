@@ -2,26 +2,50 @@
 #include <avr/io.h>
 
 #include "mcu/io/DigitalOutputPin.hpp"
-#include "mcu/io/DigitalInputPin.hpp"
+#include "mcu/usart/UARTConnection.hpp"
 
 
 int main ()
 {
     DigitalOutputPin dop(&PORTB, PB7);
-    DigitalInputPin dip(&PINB, PB6);
+
+    UARTConnection uartUSB(0, 115200);
+    UARTConnection uartAuxMCAlpha(1, 115200);
+    UARTConnection uartAuxMCBeta(2, 115200);
+    UARTConnection uartAuxRPGamma(3, 115200);
+    int i = 100;
+
+    sei();
+
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true)
     {
-        if (dip.Get())
+        if (uartUSB.DataAvailable())
         {
-            dop.Enable();
+            switch (uartUSB.ReadByte())
+            {
+                case '0':
+                    dop.Disable();
+                    break;
+                case '1':
+                    dop.Enable();
+                    break;
+                case 'e':
+                    uartUSB.WriteString("echo\n");
+                default:
+                    break;
+            }
         }
-        else
+
+        if (i == 0)
         {
-            dop.Disable();
+            i = 100;
+            uartUSB.WriteByte('1');
         }
+        --i;
+        _delay_us(1);
     }
 #pragma clang diagnostic pop
 
