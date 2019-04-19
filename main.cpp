@@ -1,51 +1,40 @@
+#include <avr/interrupt.h>
 #include <util/delay.h>
-#include <avr/io.h>
 
 #include "mcu/io/DigitalOutputPin.hpp"
+#include "mcu/io/AnalogInputPin.hpp"
+#include "mcu/io/AnalogInputController.hpp"
 #include "mcu/usart/UARTConnection.hpp"
 
 
 int main ()
 {
+    AnalogInputController aic;
+    AnalogInputPin aip1(7);
+
     DigitalOutputPin dop(&PORTB, PB7);
 
-    UARTConnection uartUSB(0, 115200);
-    UARTConnection uartAuxMCAlpha(1, 115200);
-    UARTConnection uartAuxMCBeta(2, 115200);
-    UARTConnection uartAuxRPGamma(3, 115200);
-    int i = 100;
-
     sei();
+
+    UARTConnection uartUSB(0, 115200);
+
+    aic.EnableAnalogController();
+
+    int i = 1000;
 
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true)
     {
-        if (uartUSB.DataAvailable())
-        {
-            switch (uartUSB.ReadByte())
-            {
-                case '0':
-                    dop.Disable();
-                    break;
-                case '1':
-                    dop.Enable();
-                    break;
-                case 'e':
-                    uartUSB.WriteString("echo\n");
-                default:
-                    break;
-            }
-        }
-
+        uartUSB.WriteByte(aip1.GetValue());
+        _delay_ms(1);
+        --i;
         if (i == 0)
         {
-            i = 100;
-            uartUSB.WriteByte('1');
+            dop.Flip();
+            i = 1000;
         }
-        --i;
-        _delay_us(1);
     }
 #pragma clang diagnostic pop
 
