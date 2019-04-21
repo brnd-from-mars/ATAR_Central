@@ -1,21 +1,43 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+#include "mcu/io/AnalogInputController.hpp"
+
 #include "mcu/usart/UARTConnection.hpp"
+#include "mcu/usart/UARTInterruptMasterConnection.hpp"
 
 #include "mcu/timer/TimerFastPWM.hpp"
 
 #include "mcu/interrupt/ExternalInterruptHandler.hpp"
 
 #include "periph/Motor.hpp"
+#include "periph/LightEmittingDiode.hpp"
 
 
 int main ()
 {
     UARTConnection uartUSB(0, 9600);
+    UARTConnection uartGamma(2, 38400);
+    UARTInterruptMasterConnection uartAlpha(1, 38400, &PORTH, PH5);
+    UARTInterruptMasterConnection uartBeta(3, 38400, &PORTH, PH6);
 
-    DigitalOutputPin dop(&PORTB, PB7);
-    dop.Enable();
+    SingleColorLED ledHeartbeat;
+    ledHeartbeat.RegisterPin(&PORTB, PB7);
+
+    SingleColorLED ledGroundIllumination;
+    ledGroundIllumination.RegisterPin(&PORTH, PH4);
+
+    AnalogInputController analogInputController;
+
+    AnalogInputPin groundSensorLeft(7);
+    AnalogInputPin groundSensorRight(6);
+    analogInputController.RegisterAnalogPin(&groundSensorLeft);
+    analogInputController.RegisterAnalogPin(&groundSensorRight);
+
+    AnalogInputPin batteryLevelSensor(5);
+    analogInputController.RegisterAnalogPin(&batteryLevelSensor);
+
+    analogInputController.Enable();
 
     TimerFastPWM timer0(0, 1);
     TimerFastPWM timer3(3, 1);
@@ -44,15 +66,18 @@ int main ()
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true)
     {
+        uartAlpha.Update();
+        uartBeta.Update();
+
         motorRF.Update();
         motorRB.Update();
         motorLB.Update();
         motorLF.Update();
 
-        motorRF.SetVelocity(-0x3f);
-        motorRB.SetVelocity(-0x3f);
-        motorLB.SetVelocity(0x3f);
-        motorLF.SetVelocity(0x3f);
+        _delay_ms(1000);
+        ledHeartbeat.Enable();
+        _delay_ms(1000);
+        ledHeartbeat.Disable();
     }
 #pragma clang diagnostic pop
 
