@@ -13,6 +13,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 set(FILE main.cpp)
 
 list(APPEND COMPONENTS mcu)
+list(APPEND COMPONENTS periph)
 
 
 #===============================================================================

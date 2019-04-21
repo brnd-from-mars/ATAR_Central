@@ -1,3 +1,6 @@
 [submodule "mcu"]
 	path = mcu
 	url = https://www.github.com/brendanberg01/AVR_Lib
+[submodule "periph"]
+	path = periph
+	url = https://www.github.com/brendanberg01/AVR_Periph

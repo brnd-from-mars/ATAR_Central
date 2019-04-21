@@ -1,68 +1,58 @@
-#include <avr/interrupt.h>
+#include <avr/io.h>
 #include <util/delay.h>
 
-#include "mcu/io/DigitalOutputPin.hpp"
-#include "mcu/io/AnalogInputPin.hpp"
-#include "mcu/io/AnalogInputController.hpp"
-#include "mcu/io/AnalogOutputPin.hpp"
 #include "mcu/usart/UARTConnection.hpp"
 
-#include "mcu/timer/Timer.hpp"
 #include "mcu/timer/TimerFastPWM.hpp"
 
 #include "mcu/interrupt/ExternalInterruptHandler.hpp"
 
-
-class SendInterrupt : public ExternalInterruptHandler
-{
-public:
-
-    SendInterrupt (uint8_t extIntrptID, UARTConnection* uart)
-        : ExternalInterruptHandler(
-            extIntrptID, ExternalInterruptConfig::senseControlModeRising, this),
-        m_UART(uart)
-    { }
-
-
-    void InterruptServiceRoutine () override
-    {
-        m_UART->WriteByte(0xbb);
-    }
-
-
-private:
-
-    UARTConnection* m_UART;
-
-
-};
+#include "periph/Motor.hpp"
 
 
 int main ()
 {
     UARTConnection uartUSB(0, 9600);
 
-    DigitalOutputPin dop(&PORTH, PH5);
+    DigitalOutputPin dop(&PORTB, PB7);
+    dop.Enable();
+
+    TimerFastPWM timer0(0, 1);
+    TimerFastPWM timer3(3, 1);
+    TimerFastPWM timer4(4, 1);
+
+    Motor motorRF(&PORTL, PL0, &PORTL, PL2, &PINL, PL4, &PINL, PL6,
+                  &PORTE, PE3, &timer3, 0);
+
+    Motor motorRB(&PORTB, PB2, &PORTB, PB0, &PING, PG2, &PING, PG0,
+                  &PORTH, PH3, &timer4, 0);
+
+    Motor motorLB(&PORTA, PA1, &PORTA, PA3, &PINC, PC2, &PINC, PC0,
+                  &PORTE, PE5, &timer3, 2);
+
+    Motor motorLF(&PORTA, PA7, &PORTA, PA5, &PINC, PC4, &PINC, PC6,
+                  &PORTG, PG5, &timer0, 1);
+
+    timer0.Enable();
+    timer3.Enable();
+    timer4.Enable();
 
     sei();
-
-    SendInterrupt sendInterrupt(5, &uartUSB);
-
-    uint8_t i = 10;
 
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true)
     {
-        uartUSB.WriteByte(0xaa);
-        _delay_ms(100);
-        --i;
-        if (i == 0)
-        {
-            dop.Flip();
-            i = 10;
-        }
+        motorRF.Update();
+        motorRB.Update();
+        motorLB.Update();
+        motorLF.Update();
+
+        motorRF.SetVelocity(-0x3f);
+        motorRB.SetVelocity(-0x3f);
+        motorLB.SetVelocity(0x3f);
+        motorLF.SetVelocity(0x3f);
     }
 #pragma clang diagnostic pop
 
