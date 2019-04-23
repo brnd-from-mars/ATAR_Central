@@ -12,14 +12,14 @@
 #include "periph/Motor.hpp"
 #include "periph/LightEmittingDiode.hpp"
 
+#include "com/DataDestinationUSB.hpp"
+#include "com/DataDestinationAlpha.hpp"
+
 
 int main ()
 {
-    UARTConnection uartUSB(0x00, 38400);
-//    UARTConnection uartGamma(0x02, 38400);
-//    UARTConnection uartAlpha(0x01, 38400);
-    UARTInterruptMasterConnection uartAlpha(0x01, 38400, &PORTH, PH5);
 //    UARTInterruptMasterConnection uartBeta(0x03, 38400, &PORTH, PH6);
+//    UARTConnection uartGamma(0x02, 38400);
 
     SingleColorLED ledHeartbeat;
     ledHeartbeat.RegisterPin(&PORTB, PB7);
@@ -62,6 +62,14 @@ int main ()
 //    timer3.Enable();
 //    timer4.Enable();
 
+    // TODO:
+    DataDestinationUSB dataDestinationUSB(ledHeartbeat);
+    UARTConnection uartUSB(0x00, 38400, dataDestinationUSB);
+
+    DataDestinationAlpha dataDestinationAlpha(uartUSB);
+    UARTInterruptMasterConnection uartAlpha(0x01, 38400, dataDestinationAlpha,
+                                            &PORTH, PH5);
+
     sei();
 
     _delay_ms(2000);
@@ -71,15 +79,11 @@ int main ()
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
     while (true)
     {
-        uartAlpha.RequestData();
-        while (!uartAlpha.ResponseReceived())
-        {
-            uartAlpha.Update();
-        }
-        uartUSB.WriteString(uartAlpha.GetMessage(),
-            uartAlpha.GetMessageLength());
+        uartUSB.ReceiveData();
+        uartAlpha.ReceiveData();
 
-        uartAlpha.WriteByte('1');
+        uartAlpha.RequestData();
+
         _delay_ms(100);
     }
 #pragma clang diagnostic pop

@@ -14,6 +14,7 @@ set(FILE main.cpp)
 
 list(APPEND COMPONENTS mcu)
 list(APPEND COMPONENTS periph)
+list(APPEND COMPONENTS com)
 
 
 #===============================================================================
