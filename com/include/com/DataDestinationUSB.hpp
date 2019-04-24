@@ -14,14 +14,12 @@ class DataDestinationUSB : public UARTDataDestination
 {
 public:
 
-    explicit DataDestinationUSB (SingleColorLED& ledHeartbeat);
+    DataDestinationUSB ();
 
     void DispatchMessage (const char* message, uint8_t len) override;
 
 
 private:
-
-    SingleColorLED& m_LedHeartbeat;
 
 
 };

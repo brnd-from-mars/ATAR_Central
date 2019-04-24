@@ -12,6 +12,7 @@
 #include "periph/Motor.hpp"
 #include "periph/LightEmittingDiode.hpp"
 
+#include "com/DataSourceAlpha.hpp"
 #include "com/DataDestinationUSB.hpp"
 #include "com/DataDestinationAlpha.hpp"
 
@@ -62,10 +63,10 @@ int main ()
 //    timer3.Enable();
 //    timer4.Enable();
 
-    // TODO:
-    DataDestinationUSB dataDestinationUSB(ledHeartbeat);
+    DataDestinationUSB dataDestinationUSB;
     UARTConnection uartUSB(0x00, 38400, dataDestinationUSB);
 
+    DataSourceAlpha dataSourceAlpha;
     DataDestinationAlpha dataDestinationAlpha(uartUSB);
     UARTInterruptMasterConnection uartAlpha(0x01, 38400, dataDestinationAlpha,
                                             &PORTH, PH5);
@@ -84,7 +85,15 @@ int main ()
 
         uartAlpha.RequestData();
 
-        _delay_ms(100);
+        _delay_ms(500);
+        dataSourceAlpha.EnableHeartbeat();
+        ledHeartbeat.Enable();
+        uartAlpha.SendData(dataSourceAlpha);
+
+        _delay_ms(500);
+        dataSourceAlpha.DisableHeartbeat();
+        ledHeartbeat.Disable();
+        uartAlpha.SendData(dataSourceAlpha);
     }
 #pragma clang diagnostic pop
 

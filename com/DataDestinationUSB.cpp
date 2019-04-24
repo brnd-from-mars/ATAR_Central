@@ -5,15 +5,9 @@
 #include <com/DataDestinationUSB.hpp>
 
 
-DataDestinationUSB::DataDestinationUSB (SingleColorLED& ledHeartbeat)
-    : m_LedHeartbeat(ledHeartbeat)
+DataDestinationUSB::DataDestinationUSB ()
 { }
 
 
 void DataDestinationUSB::DispatchMessage (const char* message, uint8_t len)
-{
-    if (message[0] == '1')
-    {
-        m_LedHeartbeat.Flip();
-    }
-}
+{ }
