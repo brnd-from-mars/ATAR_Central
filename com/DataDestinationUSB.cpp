@@ -9,5 +9,6 @@ DataDestinationUSB::DataDestinationUSB ()
 { }
 
 
-void DataDestinationUSB::DispatchMessage (const char* message, uint8_t len)
+void DataDestinationUSB::DispatchMessage (const unsigned char* message,
+                                          uint8_t len)
 { }

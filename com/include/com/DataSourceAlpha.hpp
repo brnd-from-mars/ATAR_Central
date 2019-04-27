@@ -14,13 +14,13 @@ public:
 
     DataSourceAlpha ();
 
+    void Start ();
+
     void EnableHeartbeat ();
 
     void DisableHeartbeat ();
 
     void SetServoPosition (uint8_t position);
-
-    void CalibrateAccelerometer ();
 
 
 protected:

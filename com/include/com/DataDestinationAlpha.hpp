@@ -7,21 +7,21 @@
 
 #include "mcu/usart/UARTDataDestination.hpp"
 
-#include "mcu/usart/UARTConnection.hpp"
+#include "SensorDataContainer.hpp"
 
 
 class DataDestinationAlpha : public UARTDataDestination
 {
 public:
 
-    explicit DataDestinationAlpha (UARTConnection& uartUSB);
+    explicit DataDestinationAlpha (SensorDataContainer& sensorData);
 
-    void DispatchMessage (const char* message, uint8_t len) override;
+    void DispatchMessage (const unsigned char* message, uint8_t len) override;
 
 
 private:
 
-    UARTConnection& m_UARTUSB;
+    SensorDataContainer& m_SensorData;
 
 
 };
